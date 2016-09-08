@@ -478,9 +478,12 @@ ggplot(filter(subrawall, conc == "low"), aes(bliss.est, zval, colour = padj < 0.
 dev.off()
 
 
-synhighlow2 <- group_by(subrawall, Drug1, Drug2, cell.line2) %.% summarize(syner=sum(synergic, na.rm=TRUE), z.max=max(zval, na.rm=TRUE),
-		which.syn = paste(conc[as.logical(ifelse(is.na(synergic), 0, synergic))], collapse="_"), c.prop=ifelse(length(which.max(zval)>0), c.prop[which.max(zval)], NA),
-		viab=ifelse(length(which.max(zval)>0), viab[which.max(zval)], NA)) %.% ungroup()
+synhighlow2 <- group_by(subrawall, Drug1, Drug2, cell.line2) %.% 
+  summarize(syner=sum(synergic, na.rm=TRUE), z.max=max(zval, na.rm=TRUE),
+            which.syn = paste(conc[as.logical(ifelse(is.na(synergic), 0, synergic))], collapse="_"),
+            c.prop = ifelse(length(which.max(zval)>0), c.prop[which.max(zval)], NA),
+            viab = ifelse(length(which.max(zval)>0), viab[which.max(zval)], NA)) %.%
+  ungroup()
 
 nsyn.all <- group_by(synhighlow2, Drug1, Drug2) %.% summarize(n.syn=sum(syner>0))
 
@@ -553,4 +556,14 @@ plot1combo2(d1="STA-4783", d2="XL147")
 plot1combo2(d2="PTK 787", d1="Vincristine") 
 dev.off()
 
+###
+###   THE SAME PLOTS ARE MADE INTERACTIVELY ON THE WEBSITE
+###   WHEN THE HEAT MAP IS CLICKED. 
+###   
+###   HERE WE PREPARE A SMALLER VERSION OF THE FULL DATA (rawstt) FOR THE WEBSITE
+###
 
+raws <- filter(rawstt, !(Drug1 %in% "DMSO"), !(Drug2 %in% "DMSO")) %>% select(Drug1, Drug2, cell.line2, conc, viab, noise.control.log, Nuclei, c.prop, est.log.sing1, est.log.sing2, sd.log.sing1, sd.log.sing2, zval, padj)
+
+## Write numeric values with 3 digits. 
+write.csv(format(raws, digits=3), row.names=FALSE, file=file.path(outdir, "combo_all_combos2.csv"))
